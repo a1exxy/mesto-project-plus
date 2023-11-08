@@ -1,0 +1,97 @@
+### Создание пользователя (Позитив)
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "some name",
+  "about": "some info",
+  "avatar": "url"
+}
+
+> {%
+  client.test("Создание пользователя (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.global.set("userId", response.body._id);
+%}
+
+### Создание пользователя (Негатив)
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": ["some name"],
+  "about": "some info",
+  "avatar": "url"
+}
+
+> {%
+  client.test("Создание пользователя (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
+### Получение всех пользователей
+GET http://localhost:3000/users
+
+> {%
+  client.test("Получение всех пользователей #1", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.test("Получение всех пользователей #2", () => client.assert(response.body.length > 0, "Тело ответа пустое"))
+%}
+
+### Получение конкретного пользователя (Позитив)
+GET http://localhost:3000/users/{{userId}}
+
+> {%
+  client.test("Получение конкретного пользователя (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+%}
+
+### Получение конкретного пользователя (Негатив)
+GET http://localhost:3000/users/654b6a5e7b1ccc27ce2cc78d
+
+> {%
+  client.test("Получение конкретного пользователя (Негатив)", () => client.assert(response.status === 404, "Response status is not 404"))
+%}
+
+### Обновление данных пользователя (Позитив)
+PATCH http://localhost:3000/users/me
+Content-Type: application/json
+
+{
+  "name": "some name1",
+  "about": "some info2"
+}
+> {%
+  client.test("Обновление данных пользователя (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+%}
+
+### Обновление данных пользователя (Негатив)
+PATCH http://localhost:3000/users/me
+Content-Type: application/json
+
+{
+  "name": ["some name1"],
+  "about": "some info2"
+}
+> {%
+  client.test("Обновление данных пользователя (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
+
+### Обновление аватарки (Позитив)
+PATCH http://localhost:3000/users/me/avatar
+Content-Type: application/json
+
+{
+  "avatar": "url3"
+}
+> {%
+  client.test("Обновление аватарки (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+%}
+
+### Обновление аватарки (Негатив)
+PATCH http://localhost:3000/users/me/avatar
+Content-Type: application/json
+
+{
+  "avatar": ["url3"]
+}
+> {%
+  client.test("Обновление аватарки (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
+%}
