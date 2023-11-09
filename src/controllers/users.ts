@@ -12,12 +12,12 @@ export const getUser = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Пользователь с _id = ${userId} не найден` });
       }
     })
-    .catch((err) => res.status(400).send(err));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const getUsers = (req: Request, res: Response) => user.find({})
   .then((out) => res.send(out))
-  .catch((err) => res.status(400).send(err));
+  .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 
 export const updateProfile = async (req: Request, res: Response) => {
   // @ts-ignore
@@ -36,7 +36,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Пользователь с _id = ${userId} не найден` });
       }
     })
-    .catch((err) => res.status(400).send(err));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const updateAvatar = async (req: Request, res: Response) => {
@@ -51,7 +51,7 @@ export const updateAvatar = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Пользователь с _id = ${userId} не найден` });
       }
     })
-    .catch((err) => res.status(400).send(err));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const createUser = (req: Request, res: Response) => user.create({
@@ -60,4 +60,4 @@ export const createUser = (req: Request, res: Response) => user.create({
   avatar: req.body.avatar,
 })
   .then((out) => res.send(out))
-  .catch((err) => res.status(400).send(err));
+  .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));

@@ -39,7 +39,7 @@ app.use('/', usersRoutes);
 // Default path
 app.use((req: Request, res: Response) => {
   res.status(500);
-  res.send('Default error');
+  res.send('На сервере произошла ошибка');
 });
 
 app.listen(process.env.PORT, () => {
