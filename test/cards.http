@@ -1,0 +1,78 @@
+### Создание карточки (Позитив)
+POST http://localhost:3000/cards
+Content-Type: application/json
+
+{
+  "name": "card1",
+  "link": "url1"
+}
+
+> {%
+  client.test("Создание карточки (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.global.set("cardId", response.body._id);
+%}
+
+### Создание карточки (Негатив)
+POST http://localhost:3000/cards
+Content-Type: application/json
+
+{
+  "name": "card1",
+  "link": ["url1"]
+}
+
+> {%
+  client.test("Создание карточки (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
+### Получение всех карточек
+GET http://localhost:3000/cards
+
+> {%
+  client.test("Получение всех карточек #1", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.test("Получение всех карточек #2", () => client.assert(response.body.length > 0, "Тело ответа пустое"))
+%}
+
+### Установка лайка (Позитив)
+PUT http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+  client.test("Установка лайка (Позитив) #1", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.test("Установка лайка (Позитив) #2", () => client.assert(response.body.likes[0] === '654bfad3a146ecb38cc02ec4', "Id не найден"))
+%}
+
+### Удаление лайка (Позитив)
+DELETE http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+  client.test("Удаление лайка (Позитив) #1", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.test("Удаление лайка (Позитив) #2", () => client.assert(response.body.likes.length === 0, "Лайк не удален"))
+%}
+
+### Удаление карточки (Позитив)
+DELETE http://localhost:3000/cards/{{cardId}}
+
+> {%
+  client.test("Удаление карточки (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+%}
+
+### Удаление карточки (Негатив)
+DELETE http://localhost:3000/cards/{{cardId}}
+
+> {%
+  client.test("Удаление карточки (Негатив)", () => client.assert(response.status === 404, "Response status is not 404"))
+%}
+
+### Установка лайка (Негатив)
+PUT http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+  client.test("Установка лайка (Негатив) #1", () => client.assert(response.status === 404, "Response status is not 404"))
+%}
+
+### Удаление лайка (Негатив)
+DELETE http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+  client.test("Удаление лайка (Негатив) #1", () => client.assert(response.status === 404, "Response status is not 404"))
+%}
