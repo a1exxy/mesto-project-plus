@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 > {%
-  client.test("Создание карточки (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
+  client.test("Создание карточки (Негатив)", () => client.assert(response.status === 500, "Response status is not 500"))
 %}
 
 ### Получение всех карточек

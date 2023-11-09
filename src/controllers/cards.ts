@@ -3,7 +3,7 @@ import card from '../models/card';
 
 export const getCards = (req: Request, res: Response) => card.find({})
   .then((out) => res.send(out))
-  .catch((err) => res.status(400).send(err));
+  .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 
 export const deleteCard = async (req: Request, res: Response) => {
   const { cardId } = req.params;
@@ -15,7 +15,7 @@ export const deleteCard = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
       }
     })
-    .catch((err) => res.status(400).send({ message: `Произошла ошибка: ${err}` }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const likeCard = async (req: Request, res: Response) => {
@@ -38,7 +38,7 @@ export const likeCard = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
       }
     })
-    .catch((err) => res.status(400).send({ message: `Произошла ошибка (${err})` }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const dislikeCard = async (req: Request, res: Response) => {
@@ -61,7 +61,7 @@ export const dislikeCard = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
       }
     })
-    .catch((err) => res.status(400).send({ message: `Произошла ошибка (${err})` }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 export const createCard = async (req: Request, res: Response) => {
@@ -74,5 +74,5 @@ export const createCard = async (req: Request, res: Response) => {
     owner: req.user._id,
   })
     .then((out) => res.send(out))
-    .catch((err) => res.status(400).send({ message: `Произошла ошибка (${err})` }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
