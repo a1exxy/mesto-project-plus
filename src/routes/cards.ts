@@ -1,4 +1,5 @@
 import express from 'express';
+import { celebrate, Joi } from 'celebrate';
 import {
   createCard,
   deleteCard,
@@ -6,6 +7,7 @@ import {
   getCards,
   likeCard,
 } from '../controllers/cards';
+import { linkFormat, nameFormat, userIdFormat } from '../utils';
 
 const cardRouter = express.Router();
 
@@ -14,14 +16,18 @@ export default cardRouter
   .get('/cards', getCards)
 
   // POST /cards — создаёт карточку
-  // В теле POST-запроса на создание карточки передайте JSON-объект с двумя полями: name и link.
-  .post('/cards', createCard)
+  .post('/cards', celebrate({
+    body: Joi.object().keys({
+      name: nameFormat.required(),
+      link: linkFormat.required(),
+    }),
+  }), createCard)
 
   // DELETE /cards/:cardId — удаляет карточку по идентификатору
-  .delete('/cards/:cardId', deleteCard)
+  .delete('/cards/:cardId', celebrate({ params: userIdFormat }), deleteCard)
 
   // PUT /cards/:cardId/likes — поставить лайк карточке
-  .put('/cards/:cardId/likes', likeCard)
+  .put('/cards/:cardId/likes', celebrate({ params: userIdFormat }), likeCard)
 
   // DELETE /cards/:cardId/likes — убрать лайк с карточки
-  .delete('/cards/:cardId/likes', dislikeCard);
+  .delete('/cards/:cardId/likes', celebrate({ params: userIdFormat }), dislikeCard);

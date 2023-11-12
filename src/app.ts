@@ -1,7 +1,18 @@
 import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
+import { celebrate, errors, Joi } from 'celebrate';
 import cardsRoutes from './routes/cards';
 import usersRoutes from './routes/users';
+import { createUser, login } from './controllers/users';
+import { requestLogger, errorLogger } from './middlewares/logger';
+import auth from './middlewares/auth';
+import {
+  aboutFormat,
+  emailFormat,
+  linkFormat,
+  nameFormat,
+  userPasswdFormat,
+} from './utils';
 
 require('dotenv').config();
 
@@ -24,22 +35,44 @@ db.once('open', () => {
 const app = express();
 
 // Заглушка для аутантификации
-app.use((req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
-  req.user = {
-    _id: '654bfad3a146ecb38cc02ec4',
-  };
-  next();
-});
 
 app.use(express.json());
-app.use('/', cardsRoutes);
-app.use('/', usersRoutes);
+app.use(requestLogger);
+
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: emailFormat,
+    password: userPasswdFormat,
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: nameFormat,
+    about: aboutFormat,
+    avatar: linkFormat,
+    email: emailFormat,
+    password: userPasswdFormat,
+  }),
+}), createUser);
+
+app.use(auth);
+
+app.use(cardsRoutes);
+app.use(usersRoutes);
 
 // Default path
-app.use((req: Request, res: Response) => {
+app.use((req: Request, res: Response) => { // TODO возможно можно убрать
   res.status(500);
   res.send('На сервере произошла ошибка');
+});
+
+app.use(errorLogger);
+app.use(errors());
+
+// eslint-disable-next-line no-unused-vars
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  res.status(500).send({ message: 'На сервере произошла ошибка', extMsg: err });
 });
 
 app.listen(process.env.PORT, () => {
