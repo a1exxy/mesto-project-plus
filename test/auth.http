@@ -1,0 +1,172 @@
+# Проверка авторизации на всех ручках
+
+### Запрос на несуществующий путь
+GET http://localhost:3000/fake
+
+> {%
+    client.test("Запрос на несуществующий путь",
+        () => client.assert(response.status === 500, "Response status is not 500"))
+%}
+
+### Не существующий метод
+PATCH http://localhost:3000/signup
+
+> {%
+    client.test("Не существующий метод",
+        () => client.assert(response.status === 500, "Response status is not 500"))
+%}
+
+### Создание пользователя (Позитив) #1
+// @no-cookie-jar
+POST http://localhost:3000/signup
+Content-Type: application/json
+
+{
+  "name": "test name",
+  "about": "some text",
+  "avatar": "http://example.com/test",
+  "email": "{{$random.alphabetic(4)}}@example.com",
+  "password": "@Aa12345"
+}
+
+> {%
+  client.test("Создание пользователя (Позитив) #1",
+    () => client.assert(response.status === 200, "Response status is not 200"))
+  client.global.set("userId", response.body._id);
+  client.global.set("email", response.body.email);
+%}
+
+### Логин (Позитив)
+// @no-cookie-jar
+POST http://localhost:3000/signin
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "@Aa12345"
+}
+
+> {%
+  client.test("Логин (Позитив) #1", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.test("Логин (Позитив) #2", () => {
+    const token = response.headers.valueOf('set-cookie').split(' ')[0].split('=')[1]
+    client.assert(token.length > '0', `Кука не установлена`)
+    client.global.set("token", token);
+  })
+%}
+
+
+
+### Логин (Негатив) # 1 [не корректный пароль]
+// @no-cookie-jar
+POST http://localhost:3000/signin
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "fakeAa1@"
+}
+
+> {%
+  client.test("Логин (Негатив) # 1 [не корректный пароль]",
+    () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+### Создание карточки (Позитив)
+// @no-cookie-jar
+POST http://localhost:3000/cards
+Content-Type: application/json
+Cookie: authorization={{token}}
+
+{
+  "name": "card1",
+  "link": "http://example.com"
+}
+
+> {%
+  client.test("Создание карточки (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
+  client.global.set("cardId", response.body._id);
+%}
+
+### ----------------- Проверка авторизаций на ручках -------------------------------
+
+###
+// @no-cookie-jar
+GET http://localhost:3000/users
+
+> {%
+  client.test("Запрос всех пользователей (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+GET http://localhost:3000/users/{{userId}}
+
+> {%
+    client.test("Запрос конкретного пользователя (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+GET http://localhost:3000/users/me
+
+> {%
+    client.test("Запрос данных о пользователе (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+PATCH http://localhost:3000/users/me
+
+> {%
+    client.test("Обновление данных о пользователе (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+PATCH http://localhost:3000/users/me/avatar
+
+> {%
+    client.test("Обновление аватара (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+GET http://localhost:3000/cards
+
+> {%
+    client.test("Запрос всех карточек (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+POST http://localhost:3000/cards
+
+> {%
+    client.test("Создание карточки (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+###
+// @no-cookie-jar
+DELETE http://localhost:3000/cards/{{cardId}}
+
+> {%
+    client.test("Удаление карточки (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+
+### Установка лайка (Негатив) [без авторизации]
+// @no-cookie-jar
+PUT http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+  client.test("Установка лайка (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}
+
+### Удаление лайка (Негатив) [без авторизации]
+// @no-cookie-jar
+DELETE http://localhost:3000/cards/{{cardId}}/likes
+
+> {%
+    client.test("Установка лайка (Негатив) [без авторизации]", () => client.assert(response.status === 401, "Response status is not 401"))
+%}

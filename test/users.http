@@ -1,12 +1,4 @@
-// Тесты для пользователя
-
-### Запрос на несуществующий путь
-GET http://localhost:3000/fake
-
-> {%
-    client.test("Запрос на несуществующий путь",
-        () => client.assert(response.status === 500, "Response status is not 500"))
-%}
+# Проврка всех операций с пользователем
 
 ### Создание пользователя (Позитив) #1
 // @no-cookie-jar
@@ -43,7 +35,8 @@ Content-Type: application/json
     () => client.assert(response.status === 200, "Response status is not 200"))
 %}
 
-### Создание пользователя (Негатив) [Не корректная структура]
+
+### Создание пользователя (Негатив) #1 [Не корректная структура]
 // @no-cookie-jar
 POST http://localhost:3000/signup
 Content-Type: application/json
@@ -57,6 +50,21 @@ Content-Type: application/json
 > {%
   client.test("Создание пользователя (Негатив) (Не корректные данные)",
       () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
+### Создание пользователя (Негатив) #2 [существующий email]
+// @no-cookie-jar
+POST http://localhost:3000/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "@Aa12345"
+}
+
+> {%
+  client.test("Создание пользователя (Негатив) #2 [существующий email]",
+    () => client.assert(response.status === 409, "Response status is not 409"))
 %}
 
 ### Логин (Позитив)
@@ -78,20 +86,7 @@ Content-Type: application/json
     })
 %}
 
-### Логин (Негатив) # 1 [не корректный пароль]
-// @no-cookie-jar
-POST http://localhost:3000/signin
-Content-Type: application/json
 
-{
-  "email": "{{email}}",
-  "password": "fakeAa1@"
-}
-
-> {%
-    client.test("Логин (Негатив) # 1 [не корректный пароль]",
-        () => client.assert(response.status === 401, "Response status is not 401"))
-%}
 
 ### Получение всех пользователей (Позитив)
 // @no-cookie-jar
@@ -103,13 +98,7 @@ Cookie: authorization={{token}}
   client.test("Получение всех пользователей (Позитив) #2", () => client.assert(response.body.length > 0, "Тело ответа пустое"))
 %}
 
-### Получение всех пользователей (Негатив)
-// @no-cookie-jar
-GET http://localhost:3000/users
 
-> {%
-    client.test("Получение всех пользователей (Негатив) #1", () => client.assert(response.status === 401, "Response status is not 401"))
-%}
 
 ### Получение конкретного пользователя (Позитив)
 // @no-cookie-jar
@@ -130,14 +119,25 @@ Cookie: authorization={{token}}
       () => client.assert(response.status === 404, "Response status is not 404"))
 %}
 
-### Получение конкретного пользователя (Негатив) #2 (не корректный id)
+### Получение конкретного пользователя (Негатив) #2 [не корректный формат id]
 // @no-cookie-jar
 GET http://localhost:3000/users/654b6a5e7b1ccc
 Cookie: authorization={{token}}
 
 > {%
-    client.test("Получение конкретного пользователя (Негатив) #1 (не существующий пользователь)",
+    client.test("Получение конкретного пользователя (Негатив) #1 [не корректный формат id]",
         () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
+### Получение данных пользователя (Позитив)
+// @no-cookie-jar
+GET http://localhost:3000/users/me
+Cookie: authorization={{token}}
+Content-Type: application/json
+
+> {%
+  client.test("Получение данных пользователя (Позитив)",
+    () => client.assert(response.status === 200, "Response status is not 200"))
 %}
 
 ### Обновление данных пользователя (Позитив)
@@ -166,7 +166,7 @@ Content-Type: application/json
   "about": "some info2"
 }
 > {%
-  client.test("Обновление данных пользователя (Негатив)", () => client.assert(response.status === 500, "Response status is not 500"))
+  client.test("Обновление данных пользователя (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
 %}
 
 
@@ -177,7 +177,7 @@ Cookie: authorization={{token}}
 Content-Type: application/json
 
 {
-  "avatar": "url3@example.com"
+  "avatar": "https://example.com/123"
 }
 > {%
   client.test("Обновление аватарки (Позитив)", () => client.assert(response.status === 200, "Response status is not 200"))
@@ -193,5 +193,5 @@ Content-Type: application/json
   "avatar": ["url3"]
 }
 > {%
-  client.test("Обновление аватарки (Негатив)", () => client.assert(response.status === 500, "Response status is not 500"))
+  client.test("Обновление аватарки (Негатив)", () => client.assert(response.status === 400, "Response status is not 400"))
 %}

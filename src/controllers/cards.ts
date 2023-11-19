@@ -1,21 +1,26 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import card from '../models/card';
+import CustomError from '../customError';
 
 export const getCards = (req: Request, res: Response) => card.find({})
   .then((out) => res.send(out))
   .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 
-export const deleteCard = async (req: Request, res: Response) => {
+export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  return card.findByIdAndRemove(cardId)
-    .then((out) => {
-      if (out) {
-        res.send(out);
-      } else {
-        res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
+  // @ts-ignore
+  const { _id: userId } = req.user;
+  return card.findById(cardId)
+    .then((item:any) => {
+      if (!item) {
+        throw new CustomError(404, 'Карточка не найдена');
       }
+      if (String(item.owner) !== userId) {
+        throw new CustomError(403, 'Чужая карточка');
+      }
+      return item.remove((out:any) => res.status(200).send(out));
     })
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch((err:any) => next(err));
 };
 
 export const likeCard = async (req: Request, res: Response) => {

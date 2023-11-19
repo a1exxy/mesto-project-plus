@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { celebrate, errors, Joi } from 'celebrate';
+import 'dotenv/config';
 import cardsRoutes from './routes/cards';
 import usersRoutes from './routes/users';
 import { createUser, login } from './controllers/users';
@@ -13,8 +14,7 @@ import {
   nameFormat,
   userPasswdFormat,
 } from './utils';
-
-require('dotenv').config();
+import CustomError from './customError';
 
 const connectOptions = {
   dbName: process.env.DB_NAME,
@@ -33,9 +33,6 @@ db.once('open', () => {
 });
 
 const app = express();
-
-// Заглушка для аутантификации
-
 app.use(express.json());
 app.use(requestLogger);
 
@@ -58,21 +55,20 @@ app.post('/signup', celebrate({
 
 app.use(auth);
 
-app.use(cardsRoutes);
-app.use(usersRoutes);
+app.use('/cards', cardsRoutes);
+app.use('/users', usersRoutes);
 
 // Default path
-app.use((req: Request, res: Response) => { // TODO возможно можно убрать
-  res.status(500);
-  res.send('На сервере произошла ошибка');
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new CustomError(500, 'На сервере произошла ошибка'));
 });
 
 app.use(errorLogger);
 app.use(errors());
 
 // eslint-disable-next-line no-unused-vars
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  res.status(500).send({ message: 'На сервере произошла ошибка', extMsg: err });
+app.use((err: any, req: Request, res: Response) => {
+  res.status(err.statusCode).send({ message: err.message });
 });
 
 app.listen(process.env.PORT, () => {
