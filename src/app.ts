@@ -1,9 +1,20 @@
 import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
+import { celebrate, errors, Joi } from 'celebrate';
+import 'dotenv/config';
 import cardsRoutes from './routes/cards';
 import usersRoutes from './routes/users';
-
-require('dotenv').config();
+import { createUser, login } from './controllers/users';
+import { requestLogger, errorLogger } from './middlewares/logger';
+import auth from './middlewares/auth';
+import {
+  aboutFormat,
+  emailFormat,
+  linkFormat,
+  nameFormat,
+  userPasswdFormat,
+} from './utils';
+import CustomError from './customError';
 
 const connectOptions = {
   dbName: process.env.DB_NAME,
@@ -22,24 +33,42 @@ db.once('open', () => {
 });
 
 const app = express();
-
-// Заглушка для аутантификации
-app.use((req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore
-  req.user = {
-    _id: '654bfad3a146ecb38cc02ec4',
-  };
-  next();
-});
-
 app.use(express.json());
-app.use('/', cardsRoutes);
-app.use('/', usersRoutes);
+app.use(requestLogger);
+
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: emailFormat,
+    password: userPasswdFormat,
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: nameFormat,
+    about: aboutFormat,
+    avatar: linkFormat,
+    email: emailFormat,
+    password: userPasswdFormat,
+  }),
+}), createUser);
+
+app.use(auth);
+
+app.use('/cards', cardsRoutes);
+app.use('/users', usersRoutes);
 
 // Default path
-app.use((req: Request, res: Response) => {
-  res.status(500);
-  res.send('На сервере произошла ошибка');
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new CustomError(500, 'На сервере произошла ошибка'));
+});
+
+app.use(errorLogger);
+app.use(errors());
+
+// eslint-disable-next-line no-unused-vars
+app.use((err: any, req: Request, res: Response) => {
+  res.status(err.statusCode).send({ message: err.message });
 });
 
 app.listen(process.env.PORT, () => {

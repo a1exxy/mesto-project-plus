@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Mesto
+  description: Mesto
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /signin:
+    post:
+      description: Логин
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  required: true
+                password:
+                  type: string
+                  required: true
+      responses:
+        '200':
+          description: Успешный логин
+          headers:
+            Set-Cookie:
+              description: JWT токен авторизации
+              schema:
+                type: string
+              example: authorization=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTU4OGJhZjU4M2ZhOGVlMjc4Mjc4MTgiLCJpYXQiOjE3MDAzMDU4OTAsImV4cCI6MTcwMDMwNTk1MH0.aWcVWzUSWkJXE19HfcVUCPFO68D19u6BYINoemEZOY8; Max-Age=60; Path=/; Expires=Sat, 18 Nov 2023 11:12:30 GMT; HttpOnly; Secure
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Не корректные учетные данные
+        '500':
+          description: Ошибка по умолчанию
+  /signup:
+    post:
+      description: Создание пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 30
+                  default: "Жак-Ив Кусто"
+                about:
+                  type: string
+                  minLength: 2
+                  maxLength: 200
+                  default: "Исследователь"
+                avatar:
+                  type: string
+                  default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png"
+                email:
+                  type: string
+                  format: email
+                  required: true
+                password:
+                  type: string
+                  required: true
+      responses:
+        '200':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "name":
+                    type: string
+                  "about":
+                    type: string
+                  "avatar":
+                    type: string
+                  "email":
+                    type: string
+                    format: email
+                  "password":
+                    type: string
+                  "_id":
+                    type: string
+                  "__v":
+                    type: integer
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Конфликт создания (Почта уже существует)
+        '500':
+          description: Ошибка по умолчанию
+  /cards:
+    get:
+      description: Возвращает все карточки
+      security:
+        - apiAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/card'
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+    post:
+      description: Создаёт карточку
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/card'
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+  /cards/{cardId}:
+    parameters:
+      - $ref: "#/components/parameters/cardId"
+    delete:
+      description: Удаляет карточку по идентификатору
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/card'
+        '401':
+          description: Требуется авторизация
+        '403':
+          description: Чужая карточка
+        '404':
+          description: Карточка не найдена
+        '500':
+          description: Ошибка по умолчанию
+
+  /cards/{cardId}/likes:
+    parameters:
+      - $ref: "#/components/parameters/cardId"
+    put:
+      description: Поставить лайк карточке
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/card'
+        '401':
+          description: Требуется авторизация
+        '404':
+          description: Карточка не найдена
+        '500':
+          description: Ошибка по умолчанию
+    delete:
+      description: Убрать лайк с карточки
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/card'
+        '401':
+          description: Требуется авторизация
+        '404':
+          description: Карточка не найдена
+        '500':
+          description: Ошибка по умолчанию
+
+  /users:
+    get:
+      description: возвращает всех пользователей
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/user"
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+  /users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/userId"
+    get:
+      description: возвращает пользователя по _id
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          description: Требуется авторизация
+        '404':
+          description: Карточка не найдена
+        '500':
+          description: Ошибка по умолчанию
+  /users/me:
+    get:
+      description: возвращает информацию о текущем пользователе
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+    patch:
+      description: обновляет профиль
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+  /users/me/avatar:
+    patch:
+      description: обновляет аватар
+      security:
+        - apiAuth: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '401':
+          description: Требуется авторизация
+        '500':
+          description: Ошибка по умолчанию
+
+components:
+  schemas:
+    id:
+      type: string
+      minLength: 24
+      maxLength: 24
+      example: "65588b5b583fa8ee27827809"
+    user:
+      type: object
+      properties:
+        "_id":
+          $ref: "#/components/schemas/id"
+        "name":
+          type: string
+        "about":
+          type: string
+        "avatar":
+          type: string
+          format: uri
+        "email":
+          type: string
+          format: email
+        "__v":
+          type: integer
+    card:
+      type: object
+      properties:
+        "_id":
+          $ref: "#/components/schemas/id"
+        "name":
+          type: string
+          minLength: 2
+          maxLength: 30
+        "link":
+          type: string
+          format: uri
+        "owner":
+          $ref: "#/components/schemas/id"
+        "likes":
+          type: array
+          items:
+            type: string
+        "createdAt":
+          type: string
+          example: "2023-11-18T10:00:59.074Z"
+        "__v":
+          type: integer
+  parameters:
+    userId:
+      name: userId
+      in: path
+      description: Id пользователя
+      required: true
+      schema:
+        type: string
+    cardId:
+      name: cardId
+      in: path
+      description: Id карточки
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    apiAuth:
+      type: apiKey
+      name: authorization
+      in: cookie

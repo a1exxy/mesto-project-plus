@@ -1,25 +1,39 @@
 import express from 'express';
+import { celebrate, Joi } from 'celebrate';
 import {
-  createUser,
+  getMe,
   getUser,
   getUsers,
   updateAvatar,
   updateProfile,
 } from '../controllers/users';
+import {
+  aboutFormat,
+  linkFormat,
+  nameFormat,
+  userIdFormat,
+} from '../utils';
 
 const usersRouter = express.Router();
 export default usersRouter
   // GET /users — возвращает всех пользователей
-  .get('/users', getUsers)
-
+  .get('/', getUsers)
+  //  возвращает информацию о текущем пользователе
+  .get('/me', getMe)
   // GET /users/:userId - возвращает пользователя по _id
-  .get('/users/:userId', getUser)
-
-  // POST /users — создаёт пользователя
-  .post('/users', createUser)
-
+  .get('/:userId', celebrate({
+    params: userIdFormat,
+  }), getUser)
   // PATCH /users/me — обновляет профиль
-  .patch('/users/me', updateProfile)
-
+  .patch('/me', celebrate({
+    body: Joi.object().keys({
+      name: nameFormat.required(),
+      about: aboutFormat.required(),
+    }),
+  }), updateProfile)
   // PATCH /users/me/avatar — обновляет аватар
-  .patch('/users/me/avatar', updateAvatar);
+  .patch('/me/avatar', celebrate({
+    body: Joi.object().keys({
+      avatar: linkFormat.required(),
+    }),
+  }), updateAvatar);

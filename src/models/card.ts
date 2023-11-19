@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-interface ICard {
+export interface ICard {
   name: string
   link: string
   owner: Schema.Types.ObjectId,
@@ -17,16 +17,19 @@ const cardSchema = new mongoose.Schema<ICard>({
   },
   link: {
     type: String,
+    maxlength: 2048,
     required: true,
   },
   owner: {
     type: Schema.Types.ObjectId,
     required: true,
+    ref: 'user',
   },
   likes: {
     type: [{
       type: Schema.Types.ObjectId,
       required: true,
+      ref: 'user',
     }],
     default: [],
   },
