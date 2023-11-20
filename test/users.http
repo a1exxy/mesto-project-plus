@@ -67,6 +67,24 @@ Content-Type: application/json
     () => client.assert(response.status === 409, "Response status is not 409"))
 %}
 
+### Создание пользователя (Негатив) #3 [Не корректная ссылка]
+// @no-cookie-jar
+POST http://localhost:3000/signup
+Content-Type: application/json
+
+{
+  "name": "test name",
+  "about": "some text",
+  "avatar": "https://ya1ru",
+  "email": "{{$random.alphabetic(4)}}@example.com",
+  "password": "@Aa12345"
+}
+
+> {%
+    client.test("Создание пользователя (Негатив) #3 [Не корректная ссылка]",
+        () => client.assert(response.status === 400, "Response status is not 400"))
+%}
+
 ### Логин (Позитив)
 // @no-cookie-jar
 POST http://localhost:3000/signin

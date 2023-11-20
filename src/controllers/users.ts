@@ -2,10 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import user from '../models/user';
-import { updateOptions } from '../utils';
-
-const expires = Number(process.env.SESSION_EXPIRES);
-const secret = process.env.SECRET!;
+import { updateOptions } from '../utils/utils';
+import { expires, secret } from '../config';
 
 export const getUser = async (req: Request, res: Response) => {
   const { userId } = req.params;

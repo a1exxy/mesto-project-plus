@@ -12,7 +12,7 @@ import {
   linkFormat,
   nameFormat,
   userIdFormat,
-} from '../utils';
+} from '../utils/validation';
 
 const usersRouter = express.Router();
 export default usersRouter

@@ -11,7 +11,7 @@ import {
   cardIdFormat,
   linkFormat,
   nameFormat,
-} from '../utils';
+} from '../utils/validation';
 
 const cardRouter = express.Router();
 

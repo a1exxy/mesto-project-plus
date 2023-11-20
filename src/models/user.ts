@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import CustomError from '../customError';
-
-const defaultName = 'Жак-Ив Кусто';
-const defaultAbout = 'Исследователь';
-const defaultAvatar = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png';
-const saltSize = Number(process.env.SALT_SIZE);
+import CustomError from '../utils/customError';
+import {
+  defaultAbout,
+  defaultAvatar,
+  defaultName,
+  saltSize,
+} from '../config';
 
 interface IUser {
   name?: string
