@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import card from '../models/card';
-import CustomError from '../customError';
+import CustomError from '../utils/customError';
 
 export const getCards = (req: Request, res: Response) => card.find({})
   .then((out) => res.send(out))

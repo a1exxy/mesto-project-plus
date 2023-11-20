@@ -1,10 +1,8 @@
 import { Joi } from 'celebrate';
 
-export const updateOptions = { new: true, runValidators: true, upsert: true };
-
 const idFormat = Joi
   .string()
-  .alphanum()
+  .hex()
   .required()
   .min(24)
   .max(24);
@@ -24,4 +22,7 @@ export const userPasswdFormat = Joi.string()
 export const emailFormat = Joi.string().email().required();
 export const nameFormat = Joi.string().min(2).max(30);
 export const aboutFormat = Joi.string().min(2).max(200);
-export const linkFormat = Joi.string().uri().max(2048);
+export const linkFormat = Joi
+  .string()
+  .pattern(/^https?:\/\/(([a-z]|-|\d)+\.)*([a-z]|-|\d)+\.\w+(\/([a-z]|\d|[-._~:/?#[\]@!$&'()*+,;=])+)*$/i)
+  .max(2048);

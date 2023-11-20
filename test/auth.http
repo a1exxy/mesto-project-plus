@@ -5,7 +5,7 @@ GET http://localhost:3000/fake
 
 > {%
     client.test("Запрос на несуществующий путь",
-        () => client.assert(response.status === 500, "Response status is not 500"))
+        () => client.assert(response.status === 401, "Response status is not 401"))
 %}
 
 ### Не существующий метод
@@ -13,7 +13,7 @@ PATCH http://localhost:3000/signup
 
 > {%
     client.test("Не существующий метод",
-        () => client.assert(response.status === 500, "Response status is not 500"))
+        () => client.assert(response.status === 401, "Response status is not 401"))
 %}
 
 ### Создание пользователя (Позитив) #1
@@ -89,6 +89,25 @@ Cookie: authorization={{token}}
 %}
 
 ### ----------------- Проверка авторизаций на ручках -------------------------------
+
+### Запрос на несуществующий путь
+GET http://localhost:3000/fake
+Cookie: authorization={{token}}
+
+> {%
+  client.test("Запрос на несуществующий путь",
+    () => client.assert(response.status === 404, "Response status is not 404"))
+%}
+
+### Не существующий метод
+PATCH http://localhost:3000/signup
+Cookie: authorization={{token}}
+
+> {%
+  client.test("Не существующий метод",
+    () => client.assert(response.status === 404, "Response status is not 404"))
+%}
+
 
 ###
 // @no-cookie-jar
