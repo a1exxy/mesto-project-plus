@@ -1,15 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import card from '../models/card';
 import CustomError from '../utils/customError';
+import { RequestWithUser } from '../utils/types';
 
-export const getCards = (req: Request, res: Response) => card.find({})
+export const getCards = (_req: Request, res: Response) => card.find({})
   .then((out) => res.send(out))
-  .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+  .catch(() => new CustomError(500, 'На сервере произошла ошибка'));
 
-export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteCard = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  // @ts-ignore
-  const { _id: userId } = req.user;
+  const userId = req.user?._id;
   return card.findById(cardId)
     .then((item:any) => {
       if (!item) {
@@ -20,18 +21,17 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
       }
       return item.remove((out:any) => res.status(200).send(out));
     })
-    .catch((err:any) => next(err));
+    .catch(next);
 };
 
-export const likeCard = async (req: Request, res: Response) => {
+export const likeCard = async (req: RequestWithUser, res: Response) => {
   const { cardId } = req.params;
+  const userId = req.user?._id;
   return card.findByIdAndUpdate(
     cardId,
     {
       $addToSet: {
-        // @ts-ignore
-        // eslint-disable-next-line no-underscore-dangle
-        likes: req.user._id,
+        likes: userId,
       },
     },
     { new: true },
@@ -43,19 +43,16 @@ export const likeCard = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
       }
     })
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(() => new CustomError(500, 'На сервере произошла ошибка'));
 };
 
-export const dislikeCard = async (req: Request, res: Response) => {
+export const dislikeCard = async (req: RequestWithUser, res: Response) => {
   const { cardId } = req.params;
   return card.findByIdAndUpdate(
     cardId,
     {
-      $pull: {
-        // @ts-ignore
-        // eslint-disable-next-line no-underscore-dangle
-        likes: req.user._id,
-      },
+      // @ts-ignore
+      $pull: { likes: new mongoose.Types.ObjectId(req.user?._id) },
     },
     { new: true },
   )
@@ -66,18 +63,17 @@ export const dislikeCard = async (req: Request, res: Response) => {
         res.status(404).send({ error: `Карточка с _id = ${cardId} не найдена` });
       }
     })
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(() => new CustomError(500, 'На сервере произошла ошибка'));
 };
 
-export const createCard = async (req: Request, res: Response) => {
+export const createCard = async (req: RequestWithUser, res: Response) => {
   const { name, link } = req.body;
+  const userId = req.user?._id;
   return card.create({
     name,
     link,
-    // @ts-ignore
-    // eslint-disable-next-line no-underscore-dangle
-    owner: req.user._id,
+    owner: userId,
   })
     .then((out) => res.send(out))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(() => new CustomError(500, 'На сервере произошла ошибка'));
 };
